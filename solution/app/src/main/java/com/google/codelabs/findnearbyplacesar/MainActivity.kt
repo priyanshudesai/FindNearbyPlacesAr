@@ -113,7 +113,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setUpAr() {
-        arFragment.hit
         arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
             // Create anchor
             val anchor = hitResult.createAnchor()
@@ -141,6 +140,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             val placeNode = PlaceNode(this, place)
             placeNode.setParent(anchorNode)
             placeNode.localPosition = place.getPositionVector(orientationAngles[0], currentLocation.latLng)
+            placeNode.localPosition
             placeNode.setOnTapListener { _, _ ->
                 showInfoWindow(place)
             }
