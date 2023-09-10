@@ -40,6 +40,10 @@ import com.google.codelabs.findnearbyplacesar.api.NearbyPlacesResponse
 import com.google.codelabs.findnearbyplacesar.api.PlacesService
 import com.google.codelabs.findnearbyplacesar.ar.PlaceNode
 import com.google.codelabs.findnearbyplacesar.ar.PlacesArFragment
+import com.google.codelabs.findnearbyplacesar.model.Geometry
+import com.google.codelabs.findnearbyplacesar.model.GeometryLocation
+import com.google.codelabs.findnearbyplacesar.model.NearByListResponse
+import com.google.codelabs.findnearbyplacesar.model.NearPlacePlace
 import com.google.codelabs.findnearbyplacesar.model.Place
 import com.google.codelabs.findnearbyplacesar.model.getPositionVector
 import retrofit2.Call
@@ -52,7 +56,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var placesService: PlacesService
     private lateinit var arFragment: PlacesArFragment
-    private lateinit var mapFragment: SupportMapFragment
+//    private lateinit var mapFragment: SupportMapFragment
 
     // Location
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -78,11 +82,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_main)
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ar_fragment) as PlacesArFragment
-        mapFragment =
-            supportFragmentManager.findFragmentById(R.id.maps_fragment) as SupportMapFragment
+//        mapFragment =
+//            supportFragmentManager.findFragmentById(R.id.maps_fragment) as SupportMapFragment
 
         sensorManager = getSystemService()!!
-        placesService = PlacesService.create()
+        placesService = PlacesService.getMyBase(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         setUpAr()
@@ -177,23 +181,29 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
 
     private fun setUpMaps() {
-        mapFragment.getMapAsync { googleMap ->
-            googleMap.isMyLocationEnabled = true
+//        mapFragment.getMapAsync { googleMap ->
+//            googleMap.isMyLocationEnabled = true
+//
+//            getCurrentLocation {
+//                val pos = CameraPosition.fromLatLngZoom(it.latLng, 13f)
+//                googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
+//                getNearbyPlaces(it)
+//            }
+//            googleMap.setOnMarkerClickListener { marker ->
+//                val tag = marker.tag
+//                if (tag !is Place) {
+//                    return@setOnMarkerClickListener false
+//                }
+//                showInfoWindow(tag)
+//                return@setOnMarkerClickListener true
+//            }
+//            map = googleMap
+//        }
 
-            getCurrentLocation {
-                val pos = CameraPosition.fromLatLngZoom(it.latLng, 13f)
-                googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
-                getNearbyPlaces(it)
-            }
-            googleMap.setOnMarkerClickListener { marker ->
-                val tag = marker.tag
-                if (tag !is Place) {
-                    return@setOnMarkerClickListener false
-                }
-                showInfoWindow(tag)
-                return@setOnMarkerClickListener true
-            }
-            map = googleMap
+        getCurrentLocation {
+            val pos = CameraPosition.fromLatLngZoom(it.latLng, 13f)
+//            googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
+            getNearbyPlaces(it)
         }
     }
 
@@ -207,32 +217,75 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun getNearbyPlaces(location: Location) {
-        val apiKey = this.getString(R.string.google_maps_key)
-        placesService.nearbyPlaces(
-            apiKey = apiKey,
-            location = "${location.latitude},${location.longitude}",
-            radiusInMeters = 2000,
-            placeType = "park"
+//        val apiKey = this.getString(R.string.google_maps_key)
+        val ACCESS_TOKEN = "rkaIJn2ay03j7IOvrVELu9OKb4G0RtmC2RRB2cXCKnMyahtjZwwJhsmCLHt9sRqp"
+        placesService.getNearByPlaces(
+            accessToken = ACCESS_TOKEN,
+            type = "bank",
+            latitude = location.latitude,
+            longitude = location.longitude
         ).enqueue(
-            object : Callback<NearbyPlacesResponse> {
-                override fun onFailure(call: Call<NearbyPlacesResponse>, t: Throwable) {
-                    Log.e(TAG, "Failed to get nearby places", t)
-                }
-
+            object : Callback<NearByListResponse> {
                 override fun onResponse(
-                    call: Call<NearbyPlacesResponse>,
-                    response: Response<NearbyPlacesResponse>
+                    call: Call<NearByListResponse>,
+                    response: Response<NearByListResponse>
                 ) {
                     if (!response.isSuccessful) {
                         Log.e(TAG, "Failed to get nearby places")
                         return
                     }
 
-                    val places = response.body()?.results ?: emptyList()
+                    val plac = response.body()?.locationList ?: emptyList<NearPlacePlace>()
+                    val places = mutableListOf<Place>()
+                    plac.forEachIndexed { index, nearPlacePlace ->
+                        places.add(
+                            Place(
+                                id = "$index",
+                                icon = "https://lifenine.in/apis/uploads/users/501/501_632cbbed2a626.jpg",
+                                name = nearPlacePlace.name,
+                                geometry = Geometry(
+                                    location = GeometryLocation(
+                                        lat = nearPlacePlace.geometry.lat ?: 0.0,
+                                        lng = nearPlacePlace.geometry.lng ?: 0.0
+                                    )
+                                )
+                            )
+                        )
+                    }
+//                    val places = response.body()?.results ?: emptyList()
                     this@MainActivity.places = places
+                }
+
+                override fun onFailure(call: Call<NearByListResponse>, t: Throwable) {
+                    Log.e(TAG, "Failed to get nearby places", t)
                 }
             }
         )
+//        placesService.nearbyPlaces(
+//            apiKey = apiKey,
+//            location = "${location.latitude},${location.longitude}",
+//            radiusInMeters = 2000,
+//            placeType = "park"
+//        ).enqueue(
+//            object : Callback<NearbyPlacesResponse> {
+//                override fun onFailure(call: Call<NearbyPlacesResponse>, t: Throwable) {
+//                    Log.e(TAG, "Failed to get nearby places", t)
+//                }
+//
+//                override fun onResponse(
+//                    call: Call<NearbyPlacesResponse>,
+//                    response: Response<NearbyPlacesResponse>
+//                ) {
+//                    if (!response.isSuccessful) {
+//                        Log.e(TAG, "Failed to get nearby places")
+//                        return
+//                    }
+//
+//                    val places = response.body()?.results ?: emptyList()
+//                    this@MainActivity.places = places
+//                }
+//            }
+//        )
     }
 
 

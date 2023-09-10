@@ -14,12 +14,19 @@
 
 package com.google.codelabs.findnearbyplacesar.api
 
+import android.content.Context
+import com.google.codelabs.findnearbyplacesar.BuildConfig
+import com.google.codelabs.findnearbyplacesar.model.NearByListResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 /**
@@ -37,22 +44,55 @@ interface PlacesService {
         @Query("type") placeType: String
     ): Call<NearbyPlacesResponse>
 
-    companion object {
-        private const val ROOT_URL = "https://maps.googleapis.com/maps/api/place/"
+    @FormUrlEncoded
+    @POST("user/near_by_search")
+    fun getNearByPlaces(
+        @Field("access_token") accessToken: String,
+        @Field("type") type: String,
+        @Field("latitude") latitude: Double,
+        @Field("longitude") longitude: Double
+    ): Call<NearByListResponse>
 
-        fun create(): PlacesService {
-            val logger = HttpLoggingInterceptor()
-            logger.level = HttpLoggingInterceptor.Level.BODY
-            val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(logger)
-                .build()
-            val converterFactory = GsonConverterFactory.create()
-            val retrofit = Retrofit.Builder()
-                .baseUrl(ROOT_URL)
-                .client(okHttpClient)
-                .addConverterFactory(converterFactory)
-                .build()
-            return retrofit.create(PlacesService::class.java)
-        }
+    companion object {
+//        private const val ROOT_URL = "https://maps.googleapis.com/maps/api/place/"
+
+        private const val COMMON_URL = "https://lifenine.in/apis/"
+        /*private const val COMMON_URL = "https://lifenine.in/staging/"*/
+        const val ROOT_URL = COMMON_URL + "api/v2/"
+
+//        fun create(): PlacesService {
+//            val logger = HttpLoggingInterceptor()
+//            logger.level = HttpLoggingInterceptor.Level.BODY
+//            val okHttpClient = OkHttpClient.Builder()
+//                .addInterceptor(logger)
+//                .build()
+//            val converterFactory = GsonConverterFactory.create()
+//            val retrofit = Retrofit.Builder()
+//                .baseUrl(ROOT_URL)
+//                .client(okHttpClient)
+//                .addConverterFactory(converterFactory)
+//                .build()
+//            return retrofit.create(PlacesService::class.java)
+
+
+            fun getMyBase(context: Context?): PlacesService {
+//                if (retrofit == null) {
+                    val httpClient = OkHttpClient.Builder().apply {
+                        addInterceptor(HeaderInterceptor(context))
+                        if (BuildConfig.DEBUG) {
+                            val logger = HttpLoggingInterceptor()
+                            logger.setLevel(HttpLoggingInterceptor.Level.BODY)
+                            addInterceptor(logger)
+                        }
+                    }.build()
+                        val retrofit = Retrofit.Builder()
+                        .baseUrl(ROOT_URL)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(httpClient)
+                        .build()
+//                }
+                return retrofit.create(PlacesService::class.java)
+            }
+//        }
     }
 }
