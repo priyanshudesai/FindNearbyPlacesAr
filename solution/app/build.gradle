@@ -37,6 +37,7 @@ android {
 
 dependencies {
     // Kotlin
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // Android
@@ -62,7 +63,9 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
 
     // Maps & Location
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
-    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation 'com.google.maps.android:maps-utils-ktx:0.2'
+    implementation 'com.github.BirjuVachhani:locus-android:4.1.2'
+    implementation 'com.google.ar:core:1.39.0'
 }

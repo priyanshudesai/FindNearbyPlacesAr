@@ -26,6 +26,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
+import com.birjuvachhani.locus.Locus
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -72,7 +73,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var markers: MutableList<Marker> = emptyList<Marker>().toMutableList()
     private var places: List<Place>? = null
     private var currentLocation: Location? = null
-    private var map: GoogleMap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,6 +117,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setUpAr() {
+        arFragment.hit
         arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
             // Create anchor
             val anchor = hitResult.createAnchor()
@@ -147,17 +148,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             placeNode.setOnTapListener { _, _ ->
                 showInfoWindow(place)
             }
-
-            // Add the place in maps
-            map?.let {
-                val marker = it.addMarker(
-                    MarkerOptions()
-                        .position(place.geometry.location.latLng)
-                        .title(place.name)
-                )
-                marker.tag = place
-                markers.add(marker)
-            }
         }
     }
 
@@ -181,39 +171,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
 
     private fun setUpMaps() {
-//        mapFragment.getMapAsync { googleMap ->
-//            googleMap.isMyLocationEnabled = true
-//
-//            getCurrentLocation {
-//                val pos = CameraPosition.fromLatLngZoom(it.latLng, 13f)
-//                googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
-//                getNearbyPlaces(it)
-//            }
-//            googleMap.setOnMarkerClickListener { marker ->
-//                val tag = marker.tag
-//                if (tag !is Place) {
-//                    return@setOnMarkerClickListener false
-//                }
-//                showInfoWindow(tag)
-//                return@setOnMarkerClickListener true
-//            }
-//            map = googleMap
-//        }
-
         getCurrentLocation {
-            val pos = CameraPosition.fromLatLngZoom(it.latLng, 13f)
-//            googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
             getNearbyPlaces(it)
         }
     }
 
     private fun getCurrentLocation(onSuccess: (Location) -> Unit) {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            currentLocation = location
-            onSuccess(location)
-        }.addOnFailureListener {
-            Log.e(TAG, "Could not get location")
-        }
+        Locus.getCurrentLocation(this,{
+            currentLocation = it.location
+            onSuccess(it.location!!)
+        })
     }
 
     private fun getNearbyPlaces(location: Location) {
@@ -261,31 +228,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
         )
-//        placesService.nearbyPlaces(
-//            apiKey = apiKey,
-//            location = "${location.latitude},${location.longitude}",
-//            radiusInMeters = 2000,
-//            placeType = "park"
-//        ).enqueue(
-//            object : Callback<NearbyPlacesResponse> {
-//                override fun onFailure(call: Call<NearbyPlacesResponse>, t: Throwable) {
-//                    Log.e(TAG, "Failed to get nearby places", t)
-//                }
-//
-//                override fun onResponse(
-//                    call: Call<NearbyPlacesResponse>,
-//                    response: Response<NearbyPlacesResponse>
-//                ) {
-//                    if (!response.isSuccessful) {
-//                        Log.e(TAG, "Failed to get nearby places")
-//                        return
-//                    }
-//
-//                    val places = response.body()?.results ?: emptyList()
-//                    this@MainActivity.places = places
-//                }
-//            }
-//        )
     }
 
 
