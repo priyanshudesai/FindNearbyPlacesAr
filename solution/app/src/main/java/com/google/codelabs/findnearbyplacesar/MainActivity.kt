@@ -29,11 +29,9 @@ import androidx.core.content.getSystemService
 import com.birjuvachhani.locus.Locus
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.ar.core.Pose
 import com.google.ar.sceneform.AnchorNode
 import com.google.codelabs.findnearbyplacesar.api.PlacesService
 import com.google.codelabs.findnearbyplacesar.ar.PlaceNode
@@ -79,14 +77,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_main)
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ar_fragment) as PlacesArFragment
-//        mapFragment =
-//            supportFragmentManager.findFragmentById(R.id.maps_fragment) as SupportMapFragment
 
         sensorManager = getSystemService()!!
         placesService = PlacesService.getMyBase(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-      setUpAr()
+//        setUpAr()
         setUpMaps()
     }
 
@@ -113,26 +109,26 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         sensorManager.unregisterListener(this)
     }
 
-    private fun setUpAr() {
-        /*val test = arFragment.arSceneView.arFrame?.hitTest(
-            arFragment.arSceneView.width / 2f,
-            arFragment.arSceneView.height / 2f
-        )*/
-        /*if (test?.isNotEmpty() == true) {
-            val hitResult = test.first()
-            val anchor = hitResult.createAnchor()
-            val anchorNode = AnchorNode(anchor)
-            anchorNode.setParent(arFragment.arSceneView.scene)
-            addPlaces(anchorNode)
-        }*/
-        arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
-            // Create anchor
-            val anchor = hitResult.createAnchor()
-            anchorNode = AnchorNode(anchor)
-            anchorNode?.setParent(arFragment.arSceneView.scene)
-            addPlaces(anchorNode!!)
-        }
-    }
+//    private fun setUpAr() {
+//        val test = arFragment.arSceneView.arFrame?.hitTest(
+//            arFragment.arSceneView.width / 2f,
+//            arFragment.arSceneView.height / 2f
+//        )
+//        if (test?.isNotEmpty() == true) {
+//            val hitResult = test.first()
+//            val anchor = hitResult.createAnchor()
+//            val anchorNode = AnchorNode(anchor)
+//            anchorNode.setParent(arFragment.arSceneView.scene)
+//            addPlaces(anchorNode)
+//        }
+//        arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
+//            // Create anchor
+//            val anchor = hitResult.createAnchor()
+//            anchorNode = AnchorNode(anchor)
+//            anchorNode?.setParent(arFragment.arSceneView.scene)
+//            addPlaces(anchorNode!!)
+//        }
+//    }
 
     private fun addPlaces(anchorNode: AnchorNode) {
         val currentLocation = currentLocation
@@ -186,10 +182,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun getCurrentLocation(onSuccess: (Location) -> Unit) {
-        Locus.getCurrentLocation(this,{
+        Locus.getCurrentLocation(this) {
             currentLocation = it.location
             onSuccess(it.location!!)
-        })
+        }
     }
 
     private fun getNearbyPlaces(location: Location) {
@@ -229,7 +225,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         )
                     }
                     this@MainActivity.places = places
-                    //setUpAr()
+                    addData(location)
                 }
 
                 override fun onFailure(call: Call<NearByListResponse>, t: Throwable) {
@@ -237,6 +233,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
         )
+    }
+
+    private fun addData(location: Location) {
+        val latitude = location.latitude.toFloat()
+        val longitude = location.longitude.toFloat()
+        val altitude = location.altitude.toFloat()
+
+        val desiredPose = Pose.makeTranslation(longitude, altitude, -latitude)
+        val anchor = arFragment.arSceneView.session?.createAnchor(desiredPose)
+
+        anchorNode = AnchorNode(anchor)
+        anchorNode?.setParent(arFragment.arSceneView.scene)
+        addPlaces(anchorNode!!)
     }
 
 
