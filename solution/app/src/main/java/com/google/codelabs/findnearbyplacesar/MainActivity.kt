@@ -28,22 +28,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.ar.sceneform.AnchorNode
-import com.google.codelabs.findnearbyplacesar.api.NearbyPlacesResponse
 import com.google.codelabs.findnearbyplacesar.api.PlacesService
 import com.google.codelabs.findnearbyplacesar.ar.PlaceNode
 import com.google.codelabs.findnearbyplacesar.ar.PlacesArFragment
 import com.google.codelabs.findnearbyplacesar.model.Geometry
 import com.google.codelabs.findnearbyplacesar.model.GeometryLocation
 import com.google.codelabs.findnearbyplacesar.model.NearByListResponse
-import com.google.codelabs.findnearbyplacesar.model.NearPlacePlace
 import com.google.codelabs.findnearbyplacesar.model.Place
 import com.google.codelabs.findnearbyplacesar.model.getPositionVector
 import retrofit2.Call
@@ -235,13 +231,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         return
                     }
 
-                    val plac = response.body()?.locationList ?: emptyList<NearPlacePlace>()
+                    val locationList = response.body()?.locationList ?: emptyList()
                     val places = mutableListOf<Place>()
-                    plac.forEachIndexed { index, nearPlacePlace ->
+                    locationList.forEachIndexed { index, nearPlacePlace ->
                         places.add(
                             Place(
                                 id = "$index",
-                                icon = "https://lifenine.in/apis/uploads/users/501/501_632cbbed2a626.jpg",
+                                icon = nearPlacePlace.photos?.getOrNull(0)?.image ?: "",
                                 name = nearPlacePlace.name,
                                 geometry = Geometry(
                                     location = GeometryLocation(
@@ -252,7 +248,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             )
                         )
                     }
-//                    val places = response.body()?.results ?: emptyList()
                     this@MainActivity.places = places
                 }
 

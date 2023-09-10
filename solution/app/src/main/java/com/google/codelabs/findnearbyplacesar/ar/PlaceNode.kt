@@ -16,7 +16,9 @@ package com.google.codelabs.findnearbyplacesar.ar
 
 import android.content.Context
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.codelabs.findnearbyplacesar.R
@@ -50,7 +52,15 @@ class PlaceNode(
 
                 place?.let {
                     textViewPlace = renderable.view.findViewById(R.id.placeName)
+                    val imgPlace = renderable.view.findViewById<ImageView>(R.id.imgIcon)
+
                     textViewPlace?.text = it.name
+                    Glide.with(context)
+                        .load(it.icon)
+                        .centerCrop()
+                        .placeholder(R.mipmap.pin_full_color)
+                        .error(R.mipmap.pin_full_color)
+                        .into(imgPlace)
                 }
             }
     }
