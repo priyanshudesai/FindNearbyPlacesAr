@@ -19,7 +19,10 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.google.ar.core.Pose
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.math.Quaternion
+import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.codelabs.findnearbyplacesar.R
 import com.google.codelabs.findnearbyplacesar.model.Place
@@ -77,5 +80,22 @@ class PlaceNode(
         }?.forEach {
             (it as PlaceNode).textViewPlace?.visibility = View.GONE
         }
+    }
+
+    fun updateMarkerOrientation(anchorPose: Pose?) {
+        if (anchorPose == null) return
+        // Extract the anchor's rotation as a quaternion
+        val anchorRotation = Quaternion(
+            anchorPose.qx(),
+            anchorPose.qy(),
+            anchorPose.qz(),
+            anchorPose.qw()
+        )
+
+        // Create a new quaternion with zero pitch and roll
+        val updatedRotation = Quaternion.axisAngle(Vector3(1f, 0f, 0f), 0f)
+
+        // Apply the corrected rotation to the marker
+        localRotation = Quaternion.multiply(updatedRotation, anchorRotation)
     }
 }
