@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         placesService = PlacesService.getMyBase(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-//        setUpAr()
+      setUpAr()
         setUpMaps()
     }
 
@@ -114,24 +114,24 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setUpAr() {
-        val test = arFragment.arSceneView.arFrame?.hitTest(
+        /*val test = arFragment.arSceneView.arFrame?.hitTest(
             arFragment.arSceneView.width / 2f,
             arFragment.arSceneView.height / 2f
-        )
-        if (test?.isNotEmpty() == true) {
+        )*/
+        /*if (test?.isNotEmpty() == true) {
             val hitResult = test.first()
             val anchor = hitResult.createAnchor()
             val anchorNode = AnchorNode(anchor)
             anchorNode.setParent(arFragment.arSceneView.scene)
             addPlaces(anchorNode)
+        }*/
+        arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
+            // Create anchor
+            val anchor = hitResult.createAnchor()
+            anchorNode = AnchorNode(anchor)
+            anchorNode?.setParent(arFragment.arSceneView.scene)
+            addPlaces(anchorNode!!)
         }
-//        arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
-//            // Create anchor
-//            val anchor = hitResult.createAnchor()
-//            anchorNode = AnchorNode(anchor)
-//            anchorNode?.setParent(arFragment.arSceneView.scene)
-//            addPlaces(anchorNode!!)
-//        }
     }
 
     private fun addPlaces(anchorNode: AnchorNode) {
@@ -229,7 +229,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         )
                     }
                     this@MainActivity.places = places
-                    setUpAr()
+                    //setUpAr()
                 }
 
                 override fun onFailure(call: Call<NearByListResponse>, t: Throwable) {
