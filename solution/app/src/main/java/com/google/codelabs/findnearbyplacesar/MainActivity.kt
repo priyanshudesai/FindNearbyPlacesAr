@@ -46,6 +46,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private val TAG = "MainActivity"
@@ -85,7 +86,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         placesService = PlacesService.getMyBase(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        setUpAr()
+//        setUpAr()
         setUpMaps()
     }
 
@@ -113,13 +114,24 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setUpAr() {
-        arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
-            // Create anchor
+        val test = arFragment.arSceneView.arFrame?.hitTest(
+            arFragment.arSceneView.width / 2f,
+            arFragment.arSceneView.height / 2f
+        )
+        if (test?.isNotEmpty() == true) {
+            val hitResult = test.first()
             val anchor = hitResult.createAnchor()
-            anchorNode = AnchorNode(anchor)
-            anchorNode?.setParent(arFragment.arSceneView.scene)
-            addPlaces(anchorNode!!)
+            val anchorNode = AnchorNode(anchor)
+            anchorNode.setParent(arFragment.arSceneView.scene)
+            addPlaces(anchorNode)
         }
+//        arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
+//            // Create anchor
+//            val anchor = hitResult.createAnchor()
+//            anchorNode = AnchorNode(anchor)
+//            anchorNode?.setParent(arFragment.arSceneView.scene)
+//            addPlaces(anchorNode!!)
+//        }
     }
 
     private fun addPlaces(anchorNode: AnchorNode) {
@@ -139,7 +151,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             // Add the place in AR
             val placeNode = PlaceNode(this, place)
             placeNode.setParent(anchorNode)
-            placeNode.localPosition = place.getPositionVector(orientationAngles[0], currentLocation.latLng)
+            placeNode.localPosition =
+                place.getPositionVector(orientationAngles[0], currentLocation.latLng)
+            placeNode.updateMarkerOrientation(anchorPose = anchorNode.anchor?.pose)
             placeNode.setOnTapListener { _, _ ->
                 showInfoWindow(place)
             }
@@ -249,6 +263,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         )
                     }
                     this@MainActivity.places = places
+                    setUpAr()
                 }
 
                 override fun onFailure(call: Call<NearByListResponse>, t: Throwable) {
